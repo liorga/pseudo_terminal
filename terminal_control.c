@@ -28,7 +28,7 @@ int ctl_echo( int fd, int flag ){
         return EXIT_FAILURE;
     }
     else{
-        
+
         if(tcgetattr(fd,&term) < 0){
             perror("tcgetattr failed");
             return EXIT_FAILURE;
@@ -49,10 +49,6 @@ int ctl_echo( int fd, int flag ){
             return EXIT_SUCCESS;
         }
         
-        
     }
     
-    
-
-
 }

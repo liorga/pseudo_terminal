@@ -24,10 +24,10 @@ int ctl_echo( int fd, int flag ){
 
     struct termios term;
 
-    if (!isatty(fd))
-    {
+    if (!isatty(fd)){
         return EXIT_FAILURE;
-    }else{
+    }
+    else{
         
         if(tcgetattr(fd,&term) < 0){
             perror("tcgetattr failed");
@@ -36,15 +36,16 @@ int ctl_echo( int fd, int flag ){
 
         if (!flag){
             term.c_lflag &= ~ECHO;
-        }else{
+        }
+        else{
             term.c_lflag |= ECHO;
         }
         
         if (tcsetattr(fd,TCSAFLUSH,&term) < 0){
             perror("tcsetattr failed");
             return EXIT_FAILURE;
-        }else
-        {
+        }
+        else{
             return EXIT_SUCCESS;
         }
         

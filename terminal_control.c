@@ -11,27 +11,45 @@ int ctl_eof( int fd, int flag );
 
 int main(int argc, char const *argv[])
 {
-    int flag;
+    int flag = 0;
     struct termios terminal;
-    int fd,res;
+    int res = 0;
     
-    if(tcgetattr(STDIN_FILENO,&terminal) < 0){
-        perror("tcgetattr2 failed");
-        return EXIT_FAILURE;
+
+    if (strcmp(argv[1],"echo") == 0)
+    {
+        if (strcmp(argv[2],"on") == 0)
+        {
+            flag = 1;
+        }
+
+        if (strcmp(argv[2],"off") == 0)
+        {
+            flag = 0;
+        }
+        
+        res = ctl_echo(STDIN_FILENO,flag);
+        
+        
+    }else if (strcmp(argv[1],"eof") == 0)
+    {
+        if (strcmp(argv[2],"on") == 0)
+        {
+            flag = 1;
+        }
+
+        if (strcmp(argv[2],"off") == 0)
+        {
+            flag = 0;
+        }
+        
+        res = ctl_eof(STDIN_FILENO,flag);
     }
 
-    if (strcmp(argv[1],"echo on"))
-    {
-        flag = 1;
-    }else if (strcmp(argv[1],"echo off"))
-    {
-        flag = 0;
-    }
 
+    
 
-    res = ctl_echo(STDIN_FILENO,flag);
-
-    //res = ctl_eof(STDIN_FILENO,flag);
+    
     
     
 
@@ -59,7 +77,7 @@ int ctl_echo( int fd, int flag ){
             term.c_lflag |= ECHO;
         }
         
-        if (tcsetattr(fd,TCSAFLUSH,&term) < 0){
+        if (tcsetattr(fd,TCSADRAIN,&term) < 0){
             perror("tcsetattr failed");
             return EXIT_FAILURE;
         }
@@ -89,7 +107,7 @@ int ctl_eof( int fd, int flag ){
             term.c_cc[VEOF] = 4;
         }
         
-        if (tcsetattr(fd,TCSAFLUSH,&term) < 0){
+        if (tcsetattr(fd,TCSADRAIN,&term) < 0){
             perror("tcsetattr failed");
             return EXIT_FAILURE;
         }

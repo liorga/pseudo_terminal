@@ -45,10 +45,7 @@ int ctl_echo( int fd, int flag ){
             perror("tcsetattr failed");
             return EXIT_FAILURE;
         }
-        else{
-            return EXIT_SUCCESS;
-        }
-        
     }
     
+    return EXIT_SUCCESS;
 }

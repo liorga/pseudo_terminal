@@ -58,6 +58,7 @@ int main(int argc, char const *argv[])
         dup2(fds,STDOUT_FILENO);
         dup2(fds,STDERR_FILENO);
         close(fds);
+
         
         execlp("cat","cat",NULL);
 

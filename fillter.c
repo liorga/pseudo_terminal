@@ -6,33 +6,116 @@
 #include <string.h>
 #define BUFF_SIZE 1024
 
+
+int ctl_echo( int fd, int flag );
+int ctl_eof( int fd, int flag );
 ssize_t dbl_copy( int f1, int t1, int f2, int t2 );
+
+
 
 int main(int argc, char const *argv[])
 {
-    
-    //pid_t pid;
-    int pipefds[2];
-    ssize_t res = 0;
+    int fds,fdm;
+    pid_t pid;
+    char* slavename;
+    //create master
+    fdm = posix_openpt(O_RDWR);
 
-    //open buffer with pipe pipefds[0] for read pipefds[1] for write maybe fds with values of 3 and 4...
-    if(pipe(pipefds) == -1){
-        perror("pipe failed");
-        exit(EXIT_FAILURE);
-    }
-    int i = 0;
-    for (i = 0; i < 1000; i++)
+    pid = fork();
+    if (pid == 0)
     {
-        res += dbl_copy(STDIN_FILENO,pipefds[1],pipefds[0],STDOUT_FILENO);
-        printf("i is: %d\n",i);
+        if (grantpt(fdm) == -1)
+        {
+            perror("grantpt failed");
+            exit(EXIT_FAILURE);
+        }
+
+        if (unlockpt(fdm) == -1)
+        {
+            perror("unlockpt failed");
+            exit(EXIT_FAILURE);
+        }
+
+        if ((slavename = ptsname(fdm)) == NULL)
+        {
+            perror("ptsname failed");
+            exit(EXIT_FAILURE);
+        }
+        
+        fds = open(slavename,O_RDWR);
+		if (fds == -1) {
+			perror("open");
+			exit(EXIT_FAILURE);
+		}
+        close(fdm);
+
     }
     
-	
-	printf("total number of bytes read is: %ld \n",res);
-    close(pipefds[0]);
-    close(pipefds[1]);
+
 
     return 0;
+}
+
+
+
+int ctl_echo( int fd, int flag ){
+
+    struct termios term;
+
+    if (!isatty(fd)){
+        return EXIT_FAILURE;
+    }
+    else{
+
+        if(tcgetattr(fd,&term) < 0){
+            perror("tcgetattr3 failed");
+            return EXIT_FAILURE;
+        }
+
+        if (!flag){
+            term.c_lflag &= ~ECHO;
+        }
+        else{
+            term.c_lflag |= ECHO;
+        }
+        
+        if (tcsetattr(fd,TCSADRAIN,&term) < 0){
+            perror("tcsetattr failed");
+            return EXIT_FAILURE;
+        }
+    }
+    
+    return EXIT_SUCCESS;
+}
+
+int ctl_eof( int fd, int flag ){
+
+    struct termios term;
+
+    if (!isatty(fd)){
+        return EXIT_FAILURE;
+    }
+    else{
+
+        if(tcgetattr(fd,&term) < 0){
+            perror("tcgetattr4 failed");
+            return EXIT_FAILURE;
+        }
+
+        if (!flag){
+            term.c_cc[VEOF] = _POSIX_VDISABLE;
+        }
+        else{
+            term.c_cc[VEOF] = 4;
+        }
+        
+        if (tcsetattr(fd,TCSADRAIN,&term) < 0){
+            perror("tcsetattr failed");
+            return EXIT_FAILURE;
+        }
+    }
+    
+    return EXIT_SUCCESS;
 }
 
 ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){

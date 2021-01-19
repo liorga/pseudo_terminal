@@ -33,7 +33,7 @@ int dbl_copy( int f1, int t1, int f2, int t2 ){
 
     size_t bufsize = BUFF_SIZE;
 	fd_set readers_fds,temp_fds;
-	int total_bytes = 0,bytes = 0;
+	ssize_t total_bytes = 0,bytes = 0;
 
 	char* buffer = (char*)malloc(BUFF_SIZE*sizeof(char));
 
@@ -52,48 +52,58 @@ int dbl_copy( int f1, int t1, int f2, int t2 ){
 		
 		
 		if (FD_ISSET(f1,&temp_fds)){
-			if (bytes = (read(f1, buffer, bufsize)) == -1) {
+			if (bytes = read(f1, buffer, bufsize) == -1) {
 				perror("read f1");
 				exit(EXIT_FAILURE);
-			}    
-                  
+			}
+            printf("reading from stdin f1:\n");   
+            /*total_bytes += bytes; 
+            printf("bytes read is: %ld \n",bytes);
+            printf("total bytes are: %ld \n",total_bytes);*/     
 			if(strncmp(buffer,"quit",strlen("quit")) == 0){
 				return total_bytes;
 			}else{
-                
+                printf("writing into pipe t1:\n");
                 if(write(t1, buffer, strlen(buffer)) == -1) {
                     perror("write t1");
                     return(EXIT_FAILURE);
                 }     
+               
             }  
 
 			//printf("\t%d: <message from fifo is>:  %s\n",STDOUT_FILENO,buffer);
 		}
 
         if (FD_ISSET(f2,&temp_fds)){
-			if (bytes = (read(f2, buffer, bufsize)) == -1) {
+			if (bytes = read(f2, buffer, bufsize) == -1) {
 				perror("read f2");
 				exit(EXIT_FAILURE);
-			}    
-            total_bytes += bytes;      
+			}  
+            /*printf("reading from pipe f2:\n");  
+           
+            printf("bytes read is: %ld \n",bytes);
+            printf("total bytes are: %ld \n",total_bytes);*/  
+            total_bytes += bytes;     
 			if(strncmp(buffer,"quit",strlen("quit")) == 0){
 				return total_bytes;
 			}else{
-                
+                printf("writing into stdout t2:\n");
                 if(write(t2, buffer, strlen(buffer)) == -1) {
                     perror("write t2");
                     return(EXIT_FAILURE);
-                }     
+                }
+                     
             }  
 
 			//printf("\t%d: <message from fifo is>:  %s\n",STDOUT_FILENO,buffer);
 		}
 
 
-		FD_CLR(f1,&temp_fds);
-		FD_CLR(f2,&temp_fds);
-		FD_ZERO(&temp_fds);
 	}
+
+	FD_CLR(f1,&temp_fds);
+	FD_CLR(f2,&temp_fds);
+	FD_ZERO(&temp_fds);
 	free(buffer);
 
     return total_bytes;

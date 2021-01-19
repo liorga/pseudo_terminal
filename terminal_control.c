@@ -46,13 +46,6 @@ int main(int argc, char const *argv[])
         res = ctl_eof(STDIN_FILENO,flag);
     }
 
-
-    
-
-    
-    
-    
-
     return 0;
 }
 

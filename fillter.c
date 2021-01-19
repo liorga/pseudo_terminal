@@ -4,6 +4,7 @@
 #include <termio.h>
 #include <stdlib.h>
 #include <string.h>
+//#define _XOPEN_SOURCE
 #define BUFF_SIZE 1024
 
 
@@ -17,13 +18,16 @@ int main(int argc, char const *argv[])
 {
     int fds,fdm;
     pid_t pid;
-    char* slavename;
+    //char* slavename = NULL;
     //create master
     fdm = posix_openpt(O_RDWR);
-
+    char* slavename = (char*)malloc(1024*sizeof(char));
+   
     pid = fork();
     if (pid == 0)
     {
+
+        printf("i am slave\n");
         if (grantpt(fdm) == -1)
         {
             perror("grantpt failed");
@@ -36,22 +40,34 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
 
-        if ((slavename = ptsname(fdm)) == NULL)
+        if (( ttyname_r(fdm,slavename,1024)) == -1)
         {
             perror("ptsname failed");
             exit(EXIT_FAILURE);
         }
-        
+        //printf("%s\n",slavename);
         fds = open(slavename,O_RDWR);
 		if (fds == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
-        close(fdm);
 
+
+        close(fdm);
+        dup2(fds,STDIN_FILENO);
+        dup2(fds,STDOUT_FILENO);
+        dup2(fds,STDERR_FILENO);
+        close(fds);
+        
+        execlp("cat","cat",NULL);
+
+        return 0;
     }
     
-
+    
+    while(1){
+        dbl_copy(STDIN_FILENO,fdm,fdm,STDOUT_FILENO);
+    }
 
     return 0;
 }
@@ -141,13 +157,13 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
 		
 		
 		if (FD_ISSET(f1,&temp_fds)){
-            printf("im in here\n");
+            //printf("im in here\n");
 			if ((bytes = read(f1, buffer, bufsize)) == -1) {
 				perror("read f1");
 				exit(EXIT_FAILURE);
 			}
 
-            printf("bytes read is: %ld \n",bytes);
+            //printf("bytes read is: %ld \n",bytes);
             
    
 			if(strncmp(buffer,"quit",strlen("quit")) == 0){
@@ -163,7 +179,7 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
 		}
 
         if (FD_ISSET(f2,&temp_fds)){
-            printf("im in here 222\n");
+            //printf("im in here 222\n");
 			if ((bytes = read(f2, buffer, bufsize)) == -1) {
 				perror("read f2");
 				exit(EXIT_FAILURE);

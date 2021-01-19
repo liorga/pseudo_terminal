@@ -18,6 +18,7 @@ int main(int argc, char const *argv[])
 {
     int fds,fdm;
     pid_t pid;
+    
     //char* slavename = NULL;
     //create master
     fdm = posix_openpt(O_RDWR);

@@ -6,6 +6,35 @@
 #include <string.h>
 #define BUFF_SIZE 1024
 
+ssize_t dbl_copy( int f1, int t1, int f2, int t2 );
+
+int main(int argc, char const *argv[])
+{
+    
+    //pid_t pid;
+    int pipefds[2];
+    ssize_t res = 0;
+
+    //open buffer with pipe pipefds[0] for read pipefds[1] for write maybe fds with values of 3 and 4...
+    if(pipe(pipefds) == -1){
+        perror("pipe failed");
+        exit(EXIT_FAILURE);
+    }
+    int i = 0;
+    for (i = 0; i < 1000; i++)
+    {
+        res += dbl_copy(STDIN_FILENO,pipefds[1],pipefds[0],STDOUT_FILENO);
+        printf("i is: %d\n",i);
+    }
+    
+	
+	printf("total number of bytes read is: %ld \n",res);
+    close(pipefds[0]);
+    close(pipefds[1]);
+
+    return 0;
+}
+
 ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
     size_t bufsize = BUFF_SIZE;
 	fd_set readers_fds,temp_fds;
@@ -50,7 +79,7 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
 	}
     FD_CLR(f1,&temp_fds);
     FD_CLR(f2,&temp_fds);
-    FD_ZERO(&temp_fds);
-    free(buffer);
-    return total_bytes;
+FD_ZERO(&temp_fds);
+free(buffer);
+return total_bytes;
 }

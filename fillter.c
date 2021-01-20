@@ -24,9 +24,7 @@ int main(int argc, char const *argv[])
     fdm = posix_openpt(O_RDWR);
     char* slavename = (char*)malloc(1024*sizeof(char));
    
-    while(1){
-        dbl_copy(STDIN_FILENO,fdm,fdm,STDOUT_FILENO);
-    }
+
 
     pid = fork();
     if (pid == 0)
@@ -45,7 +43,8 @@ int main(int argc, char const *argv[])
             exit(EXIT_FAILURE);
         }
 
-        if (( ttyname_r(fdm,slavename,BUFF_SIZE)) == -1)
+
+        if (( ptsname_r(fdm,slavename,BUFF_SIZE)) == -1)
         {
             perror("ptsname failed");
             exit(EXIT_FAILURE);
@@ -62,6 +61,12 @@ int main(int argc, char const *argv[])
         dup2(fds,STDIN_FILENO);
         dup2(fds,STDOUT_FILENO);
         dup2(fds,STDERR_FILENO);
+        // close(STDIN_FILENO);
+        // dup(fds);
+        // close(STDOUT_FILENO);
+        // dup(fds);
+        // close(STDERR_FILENO);
+        // dup(fds);
         close(fds);
 
         
@@ -71,7 +76,9 @@ int main(int argc, char const *argv[])
     }
     
     
-
+    while(1){
+        dbl_copy(STDIN_FILENO,fdm,fdm,STDOUT_FILENO);
+    }
 
     return 0;
 }

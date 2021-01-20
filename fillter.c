@@ -29,57 +29,56 @@ int main(int argc, char const *argv[])
     pid = fork();
     if (pid == 0)
     {
-
-        printf("i am slave\n");
+        //child proccess
+        
+        //give slave permissions
         if (grantpt(fdm) == -1)
         {
             perror("grantpt failed");
             exit(EXIT_FAILURE);
         }
-
+        //unlock
         if (unlockpt(fdm) == -1)
         {
             perror("unlockpt failed");
             exit(EXIT_FAILURE);
         }
 
-
+        //get slave path name
         if (( ptsname_r(fdm,slavename,BUFF_SIZE)) == -1)
         {
             perror("ptsname failed");
             exit(EXIT_FAILURE);
         }
-        //printf("%s\n",slavename);
+        //open slave using path
         fds = open(slavename,O_RDWR);
 		if (fds == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
 
-
+        //close master
         close(fdm);
+
+        //rediract 0,1,2 to fds
         dup2(fds,STDIN_FILENO);
         dup2(fds,STDOUT_FILENO);
         dup2(fds,STDERR_FILENO);
-        // close(STDIN_FILENO);
-        // dup(fds);
-        // close(STDOUT_FILENO);
-        // dup(fds);
-        // close(STDERR_FILENO);
-        // dup(fds);
+        //close fds
         close(fds);
 
-        
+        //call cat using exec
         execlp("cat","cat",NULL);
 
         return 0;
     }
     
-    
+    //perent
     while(1){
         dbl_copy(STDIN_FILENO,fdm,fdm,STDOUT_FILENO);
     }
 
+    free(slavename);
     return 0;
 }
 

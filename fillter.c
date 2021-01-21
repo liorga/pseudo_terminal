@@ -165,17 +165,12 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
 			exit(EXIT_FAILURE);
 		}
 		
-		
 		if (FD_ISSET(f1,&temp_fds)){
-            //printf("im in here\n");
 			if ((bytes = read(f1, buffer, bufsize)) == -1) {
 				perror("read f1");
 				exit(EXIT_FAILURE);
 			}
-
-            //printf("bytes read is: %ld \n",bytes);
-            
-   
+        
 			if(strncmp(buffer,"quit",strlen("quit")) == 0){
 				return total_bytes;
 			}else{
@@ -183,24 +178,18 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
                     perror("write t1");
                     return(EXIT_FAILURE);
                 }     
-               
             }  
-
 		}
 
         if (FD_ISSET(f2,&temp_fds)){
-            //printf("im in here 222\n");
 			if ((bytes = read(f2, buffer, bufsize)) == -1) {
 				perror("read f2");
 				exit(EXIT_FAILURE);
 			}
-
-            //printf("bytes read is: %ld \n",bytes);
             total_bytes += bytes;     
 			if(strncmp(buffer,"quit",strlen("quit")) == 0){
 				return total_bytes;
 			}else{
-                //printf("writing into stdout t2:\n");
                 if(write(t2, buffer, strlen(buffer)) == -1) {
                     perror("write t2");
                     return(EXIT_FAILURE);

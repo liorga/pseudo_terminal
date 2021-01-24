@@ -7,7 +7,10 @@
 //#define _XOPEN_SOURCE
 #define BUFF_SIZE 1024
 
-
+int ptsname_r(int,char*,size_t);
+int posix_openpt(int);
+int grantpt(int);
+int unlockpt(int);
 int ctl_echo( int fd, int flag );
 int ctl_eof( int fd, int flag );
 ssize_t dbl_copy( int f1, int t1, int f2, int t2 );
@@ -25,18 +28,21 @@ int main(int argc, char const *argv[])
     char* slavename = (char*)malloc(1024*sizeof(char));
    
 
+    //ctl_echo(fdm,0); turn off master echo(works)
+    
 
     pid = fork();
     if (pid == 0)
     {
+
         //child proccess
-        
         //give slave permissions
         if (grantpt(fdm) == -1)
         {
             perror("grantpt failed");
             exit(EXIT_FAILURE);
         }
+
         //unlock
         if (unlockpt(fdm) == -1)
         {
@@ -57,6 +63,8 @@ int main(int argc, char const *argv[])
 			exit(EXIT_FAILURE);
 		}
 
+        //ctl_eof(fds,1);
+        //ctl_echo(fds,1); turn on/off echo for slave
         //close master
         close(fdm);
 
@@ -196,8 +204,6 @@ ssize_t dbl_copy( int f1, int t1, int f2, int t2 ){
                 }
                      
             }  
-
-			//printf("\t%d: <message from fifo is>:  %s\n",STDOUT_FILENO,buffer);
 		}
 
 	FD_CLR(f1,&temp_fds);
